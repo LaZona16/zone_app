@@ -1,14 +1,15 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
-import 'package:location_permissions/location_permissions.dart';
 import 'dart:io' show Platform;
+import 'package:location/location.dart';
 
 // This flutter app demonstrates an usage of the flutter_reactive_ble flutter plugin
 // This app works only with BLE devices which advertise with a Nordic UART Service (NUS) UUID
-Uuid _UART_UUID = Uuid.parse("FFE0");
-Uuid _UART_RX = Uuid.parse("FFE2");
-Uuid _UART_TX = Uuid.parse("FFE1");
+Uuid _UART_UUID = Uuid.parse("0000ffe0-0000-1000-8000-00805f9b34fb");
+Uuid _UART_RX = Uuid.parse("0000ffe1-0000-1000-8000-00805f9b34fb");
+Uuid _UART_TX = Uuid.parse("0000ffe1-0000-1000-8000-00805f9b34fb");
 
 void main() {
   runApp(MyApp());
@@ -62,13 +63,12 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _sendData() async {
     await flutterReactiveBle.writeCharacteristicWithResponse(_rxCharacteristic,
-        value: _dataToSendText.text.codeUnits);
+        value: utf8.encode(_dataToSendText.text));
   }
 
   void onNewReceivedData(List<int> data) {
     _numberOfMessagesReceived += 1;
-    _receivedData
-        .add("$_numberOfMessagesReceived: ${String.fromCharCodes(data)}");
+    _receivedData.add("$_numberOfMessagesReceived: ${data.toList()}");
     if (_receivedData.length > 5) {
       _receivedData.removeAt(0);
     }
@@ -116,7 +116,7 @@ class _MyHomePageState extends State<MyHomePage> {
     bool goForIt = false;
     PermissionStatus permission;
     if (Platform.isAndroid) {
-      permission = await LocationPermissions().requestPermissions();
+      permission = await Location().requestPermission();
       if (permission == PermissionStatus.granted) goForIt = true;
     } else if (Platform.isIOS) {
       goForIt = true;
