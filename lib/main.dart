@@ -1,198 +1,302 @@
-import 'dart:async';
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
-import 'dart:io' show Platform;
-import 'package:location/location.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
-// This flutter app demonstrates an usage of the flutter_reactive_ble flutter plugin
-// This app works only with BLE devices which advertise with a Nordic UART Service (NUS) UUID
-Uuid _UART_UUID = Uuid.parse("0000ffe0-0000-1000-8000-00805f9b34fb");
-Uuid _UART_RX = Uuid.parse("0000ffe1-0000-1000-8000-00805f9b34fb");
-Uuid _UART_TX = Uuid.parse("0000ffe1-0000-1000-8000-00805f9b34fb");
+void main() => runApp(MyApp());
 
-void main() {
-  runApp(MyApp());
-}
+Guid ZONE_SERVICE = Guid("0000ffe0-0000-1000-8000-00805f9b34fb");
 
 class MyApp extends StatelessWidget {
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter_reactive_ble example',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
-      home: MyHomePage(title: 'Flutter_reactive_ble UART example'),
-    );
-  }
+  Widget build(BuildContext context) => MaterialApp(
+        title: 'BLE Demo',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+        ),
+        home: MyHomePage(title: 'Flutter BLE Demo'),
+      );
 }
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
+
   final String title;
+  final FlutterBluePlus flutterBlue = FlutterBluePlus.instance;
+  final List<BluetoothDevice> devicesList = new List<BluetoothDevice>();
+  final Map<Guid, List<int>> readValues = new Map<Guid, List<int>>();
+
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final flutterReactiveBle = FlutterReactiveBle();
-  List<DiscoveredDevice> _foundBleUARTDevices = [];
-  StreamSubscription<DiscoveredDevice> _scanStream;
-  Stream<ConnectionStateUpdate> _currentConnectionStream;
-  StreamSubscription<ConnectionStateUpdate> _connection;
-  QualifiedCharacteristic _txCharacteristic;
-  QualifiedCharacteristic _rxCharacteristic;
-  Stream<List<int>> _receivedDataStream;
-  TextEditingController _dataToSendText;
-  bool _scanning = false;
-  bool _connected = false;
-  String _logTexts = "";
-  List<String> _receivedData = [];
-  int _numberOfMessagesReceived = 0;
+  final _writeController = TextEditingController();
+  BluetoothDevice _connectedDevice;
+  List<BluetoothService> _services;
 
+  _addDeviceTolist(final BluetoothDevice device) {
+    if (!widget.devicesList.contains(device)) {
+      setState(() {
+        widget.devicesList.add(device);
+      });
+    }
+  }
+
+  @override
   void initState() {
     super.initState();
-    _dataToSendText = TextEditingController();
+    widget.flutterBlue.connectedDevices
+        .asStream()
+        .listen((List<BluetoothDevice> devices) {
+      for (BluetoothDevice device in devices) {
+        _addDeviceTolist(device);
+      }
+    });
+    widget.flutterBlue.scanResults.listen((List<ScanResult> results) {
+      for (ScanResult result in results) {
+        _addDeviceTolist(result.device);
+      }
+    });
+    widget.flutterBlue.startScan();
   }
 
-  void refreshScreen() {
-    setState(() {});
-  }
-
-  void _sendData() async {
-    await flutterReactiveBle.writeCharacteristicWithResponse(_rxCharacteristic,
-        value: utf8.encode(_dataToSendText.text));
-  }
-
-  void onNewReceivedData(List<int> data) {
-    _numberOfMessagesReceived += 1;
-    _receivedData.add("$_numberOfMessagesReceived: ${data.toList()}");
-    if (_receivedData.length > 5) {
-      _receivedData.removeAt(0);
-    }
-    refreshScreen();
-  }
-
-  void _disconnect() async {
-    await _connection.cancel();
-    _connected = false;
-    refreshScreen();
-  }
-
-  void _stopScan() async {
-    await _scanStream.cancel();
-    _scanning = false;
-    refreshScreen();
-  }
-
-  Future<void> showNoPermissionDialog() async => showDialog<void>(
-        context: context,
-        barrierDismissible: false, // user must tap button!
-        builder: (BuildContext context) => AlertDialog(
-          title: const Text('No location permission '),
-          content: SingleChildScrollView(
-            child: ListBody(
+  ListView _buildListViewOfDevices() {
+    List<Container> containers = new List<Container>();
+    for (BluetoothDevice device in widget.devicesList) {
+      if (device.name.contains('Z')) {
+        containers.add(
+          Container(
+            height: 50,
+            child: Row(
               children: <Widget>[
-                const Text('No location permission granted.'),
-                const Text(
-                    'Location permission is required for BLE to function.'),
+                Expanded(
+                  child: Column(
+                    children: <Widget>[
+                      Text(
+                          device.name == '' ? '(unknown device)' : device.name),
+                      Text(device.id.toString()),
+                    ],
+                  ),
+                ),
+                FlatButton(
+                  color: Colors.blue,
+                  child: Text(
+                    'Connect',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  onPressed: () async {
+                    widget.flutterBlue.stopScan();
+                    try {
+                      await device.connect();
+                    } catch (e) {
+                      if (e.code != 'already_connected') {
+                        throw e;
+                      }
+                    } finally {
+                      _services = await device.discoverServices();
+                    }
+                    setState(() {
+                      _connectedDevice = device;
+                    });
+                  },
+                ),
               ],
             ),
           ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Acknowledge'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        ),
-      );
+        );
+      }
+    }
 
-  void _startScan() async {
-    bool goForIt = false;
-    PermissionStatus permission;
-    if (Platform.isAndroid) {
-      permission = await Location().requestPermission();
-      if (permission == PermissionStatus.granted) goForIt = true;
-    } else if (Platform.isIOS) {
-      goForIt = true;
-    }
-    if (goForIt) {
-      //TODO replace True with permission == PermissionStatus.granted is for IOS test
-      _foundBleUARTDevices = [];
-      _scanning = true;
-      refreshScreen();
-      _scanStream = flutterReactiveBle.scanForDevices().listen((device) {
-        if (_foundBleUARTDevices.every((element) => element.id != device.id)) {
-          if (device.name.contains('Z')) {
-            _foundBleUARTDevices.add(device);
-          }
-          refreshScreen();
-        }
-      }, onError: (Object error) {
-        _logTexts = "${_logTexts}ERROR while scanning:$error \n";
-        refreshScreen();
-      });
-    } else {
-      await showNoPermissionDialog();
-    }
+    return ListView(
+      padding: const EdgeInsets.all(8),
+      children: <Widget>[
+        ...containers,
+      ],
+    );
   }
 
-  void onConnectDevice(index) {
-    _currentConnectionStream = flutterReactiveBle.connectToDevice(
-      id: _foundBleUARTDevices[index].id,
-    );
-    _logTexts = "";
-    refreshScreen();
-    _connection = _currentConnectionStream.listen((event) {
-      var id = event.deviceId.toString();
-      switch (event.connectionState) {
-        case DeviceConnectionState.connecting:
-          {
-            _logTexts = "${_logTexts}Connecting to $id\n";
-            break;
-          }
-        case DeviceConnectionState.connected:
-          {
-            _connected = true;
-            _logTexts = "${_logTexts}Connected to $id.\n";
-            _numberOfMessagesReceived = 0;
-            _receivedData = [];
-            _txCharacteristic = QualifiedCharacteristic(
-                serviceId: _UART_UUID,
-                characteristicId: _UART_TX,
-                deviceId: event.deviceId);
-            _receivedDataStream =
-                flutterReactiveBle.subscribeToCharacteristic(_txCharacteristic);
-            _receivedDataStream.listen((data) {
-              onNewReceivedData(data);
-            }, onError: (dynamic error) {
-              _logTexts = "${_logTexts}Error:$error$id\n";
-            });
-            _rxCharacteristic = QualifiedCharacteristic(
-                serviceId: _UART_UUID,
-                characteristicId: _UART_RX,
-                deviceId: event.deviceId);
-            break;
-          }
-        case DeviceConnectionState.disconnecting:
-          {
-            _connected = false;
-            _logTexts = "${_logTexts}Disconnecting from $id\n";
-            break;
-          }
-        case DeviceConnectionState.disconnected:
-          {
-            _logTexts = "${_logTexts}Disconnected from $id\n";
-            break;
-          }
+  List<ButtonTheme> _buildReadWriteNotifyButton(
+      BluetoothCharacteristic characteristic) {
+    List<ButtonTheme> buttons = new List<ButtonTheme>();
+
+    if (characteristic.properties.read) {
+      buttons.add(
+        ButtonTheme(
+          minWidth: 10,
+          height: 20,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: RaisedButton(
+              color: Colors.blue,
+              child: Text('READ', style: TextStyle(color: Colors.white)),
+              onPressed: () async {
+                var sub = characteristic.value.listen((value) {
+                  setState(() {
+                    widget.readValues[characteristic.uuid] = value;
+                  });
+                });
+                await characteristic.read();
+                sub.cancel();
+              },
+            ),
+          ),
+        ),
+      );
+    }
+    if (characteristic.properties.write) {
+      buttons.add(
+        ButtonTheme(
+          minWidth: 10,
+          height: 20,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: RaisedButton(
+              child: Text(
+                'WRITE',
+                style: TextStyle(color: Colors.white),
+              ),
+              onPressed: () async {
+                await showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: Text("Write"),
+                        content: Row(
+                          children: <Widget>[
+                            Expanded(
+                              child: TextField(
+                                controller: _writeController,
+                              ),
+                            ),
+                          ],
+                        ),
+                        actions: <Widget>[
+                          FlatButton(
+                            child: Text("Send"),
+                            onPressed: () {
+                              characteristic.write(
+                                  utf8.encode(_writeController.value.text));
+                              Navigator.pop(context);
+                            },
+                          ),
+                          FlatButton(
+                            child: Text("Cancel"),
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                          ),
+                        ],
+                      );
+                    });
+              },
+            ),
+          ),
+        ),
+      );
+    }
+    if (characteristic.properties.notify) {
+      buttons.add(
+        ButtonTheme(
+          minWidth: 10,
+          height: 20,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: RaisedButton(
+              child: Text('NOTIFY', style: TextStyle(color: Colors.white)),
+              onPressed: () async {
+                characteristic.value.listen((value) {
+                  setState(() {
+                    widget.readValues[characteristic.uuid] = value;
+                  });
+                });
+                await characteristic.setNotifyValue(true);
+              },
+            ),
+          ),
+        ),
+      );
+    }
+
+    return buttons;
+  }
+
+  ListView _buildConnectDeviceView() {
+    List<Container> containers = new List<Container>();
+
+    for (BluetoothService service in _services) {
+      if (ZONE_SERVICE == service.uuid) {
+        List<Widget> characteristicsWidget = new List<Widget>();
+
+        for (BluetoothCharacteristic characteristic
+            in service.characteristics) {
+          characteristicsWidget.add(
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Column(
+                children: <Widget>[
+                  Row(
+                    children: <Widget>[
+                      Text(characteristic.uuid.toString(),
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                  Row(
+                    children: <Widget>[
+                      ..._buildReadWriteNotifyButton(characteristic),
+                    ],
+                  ),
+                  Row(
+                    children: <Widget>[
+                      Text('Value: ' +
+                          widget.readValues[characteristic.uuid].toString()),
+                    ],
+                  ),
+                  Divider(),
+                ],
+              ),
+            ),
+          );
+        }
+        containers.add(
+          Container(
+            child: ExpansionTile(
+                title: Text(service.uuid.toString()),
+                children: characteristicsWidget),
+          ),
+        );
       }
-      refreshScreen();
-    });
+    }
+
+    return ListView(
+      padding: const EdgeInsets.all(8),
+      children: <Widget>[
+        ...containers,
+        FlatButton(
+          color: Colors.blue,
+          child: Text(
+            'Disconnect',
+            style: TextStyle(color: Colors.white),
+          ),
+          onPressed: () async {
+            try {
+              await _connectedDevice.disconnect();
+            } catch (e) {
+              if (e.code != 'already_disconnected') {
+                throw e;
+              }
+            }
+          },
+        ),
+      ],
+    );
+  }
+
+  ListView _buildView() {
+    if (_connectedDevice != null) {
+      return _buildConnectDeviceView();
+    }
+    return _buildListViewOfDevices();
   }
 
   @override
@@ -200,120 +304,6 @@ class _MyHomePageState extends State<MyHomePage> {
         appBar: AppBar(
           title: Text(widget.title),
         ),
-        body: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: <Widget>[
-              const Text("BLE UART Devices found:"),
-              Container(
-                  margin: const EdgeInsets.all(3.0),
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.blue, width: 2)),
-                  height: 100,
-                  child: ListView.builder(
-                      itemCount: _foundBleUARTDevices.length,
-                      itemBuilder: (context, index) => Card(
-                              child: ListTile(
-                            dense: true,
-                            enabled: true,
-                            trailing: GestureDetector(
-                              behavior: HitTestBehavior.translucent,
-                              onTap: () {
-                                onConnectDevice(index);
-                              },
-                              child: Container(
-                                width: 48,
-                                height: 48,
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 4.0),
-                                alignment: Alignment.center,
-                                child: const Icon(Icons.add_link),
-                              ),
-                            ),
-                            subtitle: Text(_foundBleUARTDevices[index].id),
-                            title: Text(
-                                "$index: ${_foundBleUARTDevices[index].name}"),
-                          )))),
-              const Text("Status messages:"),
-              Container(
-                  margin: const EdgeInsets.all(3.0),
-                  width: 1400,
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.blue, width: 2)),
-                  height: 90,
-                  child: Scrollbar(
-                      child: SingleChildScrollView(child: Text(_logTexts)))),
-              const Text("Received data:"),
-              Container(
-                  margin: const EdgeInsets.all(3.0),
-                  width: 1400,
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.blue, width: 2)),
-                  height: 90,
-                  child: Text(_receivedData.join("\n"))),
-              const Text("Send message:"),
-              Container(
-                  margin: const EdgeInsets.all(3.0),
-                  padding: const EdgeInsets.all(8.0),
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.blue, width: 2)),
-                  child: Row(children: <Widget>[
-                    Expanded(
-                        child: TextField(
-                      enabled: _connected,
-                      controller: _dataToSendText,
-                      decoration: const InputDecoration(
-                          border: InputBorder.none, hintText: 'Enter a string'),
-                    )),
-                    RaisedButton(
-                        child: Icon(
-                          Icons.send,
-                          color: _connected ? Colors.blue : Colors.grey,
-                        ),
-                        onPressed: _connected ? _sendData : () {}),
-                  ]))
-            ],
-          ),
-        ),
-        persistentFooterButtons: [
-          Container(
-            height: 35,
-            child: Column(
-              children: [
-                if (_scanning)
-                  const Text("Scanning: Scanning")
-                else
-                  const Text("Scanning: Idle"),
-                if (_connected)
-                  const Text("Connected")
-                else
-                  const Text("disconnected."),
-              ],
-            ),
-          ),
-          RaisedButton(
-            onPressed: !_scanning && !_connected ? _startScan : () {},
-            child: Icon(
-              Icons.play_arrow,
-              color: !_scanning && !_connected ? Colors.blue : Colors.grey,
-            ),
-          ),
-          RaisedButton(
-              onPressed: _scanning ? _stopScan : () {},
-              child: Icon(
-                Icons.stop,
-                color: _scanning ? Colors.blue : Colors.grey,
-              )),
-          RaisedButton(
-              onPressed: _connected ? _disconnect : () {},
-              child: Icon(
-                Icons.cancel,
-                color: _connected ? Colors.blue : Colors.grey,
-              ))
-        ],
+        body: _buildView(),
       );
 }
