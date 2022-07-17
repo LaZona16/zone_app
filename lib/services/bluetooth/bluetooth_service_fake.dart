@@ -1,15 +1,15 @@
 import 'package:zone_app/business_logic/models/bluetooth_device.dart';
 import 'package:zone_app/services/bluetooth/bluetooth_service.dart';
 
-class BluetoothServiceFake implements BluetoothService {
+class BluetoothServiceFake implements BluetoothServiceApi {
   @override
-  List<BluetoothDevice> getBluetoothDevices() {
+  Future<List<BluetoothDeviceData>> scanBluetoothDevices() async {
     return [
-      BluetoothDevice(name: "Disp1"),
-      BluetoothDevice(name: "Disp2"),
-      BluetoothDevice(name: "Disp3"),
-      BluetoothDevice(name: "Disp4"),
-      BluetoothDevice(name: "Disp5"),
+      BluetoothDeviceData(name: "Disp1"),
+      BluetoothDeviceData(name: "Disp2"),
+      BluetoothDeviceData(name: "Disp3"),
+      BluetoothDeviceData(name: "Disp4"),
+      BluetoothDeviceData(name: "Disp5"),
     ];
   }
 }

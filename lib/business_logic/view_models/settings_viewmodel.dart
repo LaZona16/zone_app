@@ -5,14 +5,15 @@ import 'package:zone_app/services/bluetooth/bluetooth_service.dart';
 import 'package:zone_app/services/service_locator.dart';
 
 class SettingsScreenViewModel with ChangeNotifier {
-  final BluetoothService _bluetoothService = serviceLocator<BluetoothService>();
-  List<BluetoothDevice> _devices = [];
+  final BluetoothServiceApi _bluetoothService =
+      serviceLocator<BluetoothServiceApi>();
+  List<BluetoothDeviceData> _devices = [];
 
-  List<BluetoothDevice> get devices => _devices;
+  List<BluetoothDeviceData> get devices => _devices;
 
   //Search for BE devices
-  void loadData() {
-    _devices = _bluetoothService.getBluetoothDevices();
+  Future<void> loadData() async {
+    _devices = await _bluetoothService.scanBluetoothDevices();
     notifyListeners();
   }
 

@@ -72,9 +72,8 @@ class SettingsPage extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: const [
                     TextIcon(
-                      icon: Icons.check_circle,
-                      title: "Synchronized Products."
-                    )
+                        icon: Icons.check_circle,
+                        title: "Synchronized Products.")
                   ],
                 )),
             // Syncronized products

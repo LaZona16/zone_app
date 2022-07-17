@@ -3,7 +3,7 @@ import 'package:zone_app/business_logic/models/bluetooth_device.dart';
 import 'package:zone_app/ui/widgets/text_icon.dart';
 
 class DeviceItems extends StatelessWidget {
-  final List<BluetoothDevice> devices;
+  final List<BluetoothDeviceData> devices;
 
   const DeviceItems({
     Key? key,
@@ -20,7 +20,10 @@ class DeviceItems extends StatelessWidget {
       child: Center(
         child: ListView.builder(
             itemBuilder: (context, index) {
-              return TextIcon(title: devices[index].name, icon: Icons.bluetooth,);
+              return TextIcon(
+                title: devices[index].name,
+                icon: Icons.bluetooth,
+              );
             },
             itemCount: devices.length),
       ),
