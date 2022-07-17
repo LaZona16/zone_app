@@ -17,6 +17,8 @@ class MyApp extends StatelessWidget {
       //Create the assets of the app
       theme: ThemeData(
         primarySwatch: Colors.blue,
+        // scaffoldBackgroundColor: Colors.black,
+
       ),
       home: SettingsPage(),
     );

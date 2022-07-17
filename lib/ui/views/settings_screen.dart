@@ -20,20 +20,44 @@ class SettingsPage extends StatelessWidget {
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            const Text(
-                "*Turn On your Smart Phone Bluetooth to sync La Zona Products"),
-            // Click to search
-            IconButton(
-              onPressed: () {
-                settingsModel.loadData();
-              },
-              icon: Icon(Icons.start),
+            Container(
+                child: const Center(
+              child: Icon(
+                Icons.settings,
+                color: Color.fromARGB(85, 0, 181, 0),
+              ),
+            )),
+            const Center(
+              child: Text(
+                "*Turn On your Smart Phone Bluetooth to sync La Zona Products",
+                style: TextStyle(fontSize: 10),
+              ),
             ),
-            const TextIcon(icon: Icons.bluetooth, title: "Search for Products"),
+            Container(
+                margin: EdgeInsets.only(top: 10.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    TextIcon(
+                      icon: Icons.bluetooth,
+                      title: "Search for Products",
+                      onPressed: () {
+                        settingsModel.loadData();
+                      },
+                    )
+                  ],
+                )),
+            const Divider(
+              color: Colors.black,
+            ),
             //ListView of Bluetooth Devices
             Consumer<SettingsScreenViewModel>(
-              builder: (context, model, child) =>
-                  DeviceItems(devices: model.devices),
+              builder: (context, model, child) => Center(
+                child: DeviceItems(devices: model.devices),
+              ),
+            ),
+            Divider(
+              color: Colors.black,
             ),
             //Click to delete
             IconButton(
@@ -42,6 +66,17 @@ class SettingsPage extends StatelessWidget {
               },
               icon: Icon(Icons.delete),
             ),
+            Container(
+                margin: EdgeInsets.only(top: 10.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: const [
+                    TextIcon(
+                      icon: Icons.check_circle,
+                      title: "Synchronized Products."
+                    )
+                  ],
+                )),
             // Syncronized products
             // Card of 3 products
 
