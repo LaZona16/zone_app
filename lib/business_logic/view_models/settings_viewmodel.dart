@@ -7,9 +7,9 @@ import 'package:zone_app/services/service_locator.dart';
 class SettingsScreenViewModel with ChangeNotifier {
   final BluetoothServiceApi _bluetoothService =
       serviceLocator<BluetoothServiceApi>();
-  List<BluetoothDeviceData> _devices = [];
+  Stream<List<DeviceModel>> _devices = const Stream.empty();
 
-  List<BluetoothDeviceData> get devices => _devices;
+  Stream<List<DeviceModel>> get devices => _devices;
 
   //Search for BE devices
   Future<void> loadData() async {
@@ -17,8 +17,8 @@ class SettingsScreenViewModel with ChangeNotifier {
     notifyListeners();
   }
 
-  void clearData() {
-    _devices.clear();
+  void clearDevices() {
+    _devices = Stream<List<DeviceModel>>.fromIterable(<List<DeviceModel>>[]);
     notifyListeners();
   }
 }

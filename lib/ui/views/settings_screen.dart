@@ -62,7 +62,7 @@ class SettingsPage extends StatelessWidget {
             //Click to delete
             IconButton(
               onPressed: () {
-                settingsModel.clearData();
+                settingsModel.clearDevices();
               },
               icon: Icon(Icons.delete),
             ),

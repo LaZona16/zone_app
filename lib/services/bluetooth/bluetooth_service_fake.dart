@@ -3,13 +3,12 @@ import 'package:zone_app/services/bluetooth/bluetooth_service.dart';
 
 class BluetoothServiceFake implements BluetoothServiceApi {
   @override
-  Future<List<BluetoothDeviceData>> scanBluetoothDevices() async {
-    return [
-      BluetoothDeviceData(name: "Disp1"),
-      BluetoothDeviceData(name: "Disp2"),
-      BluetoothDeviceData(name: "Disp3"),
-      BluetoothDeviceData(name: "Disp4"),
-      BluetoothDeviceData(name: "Disp5"),
-    ];
+  Stream<List<DeviceModel>> scanBluetoothDevices() {
+    return Stream<List<DeviceModel>>.fromIterable(
+      <List<DeviceModel>>[
+        List<DeviceModel>.generate(
+            10, (int i) => DeviceModel(name: 'Device${i}')),
+      ],
+    );
   }
 }

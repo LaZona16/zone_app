@@ -1,7 +1,7 @@
-class BluetoothDeviceData {
+class DeviceModel {
   final String name;
 
-  BluetoothDeviceData({
+  DeviceModel({
     required this.name,
   });
 }
