@@ -3,6 +3,7 @@ import 'package:zone_app/src/core/usecases.dart';
 import 'package:zone_app/src/features/devices/domain/entity/device_entity.dart';
 import 'package:zone_app/src/features/devices/domain/usecase/search_devices_usecase.dart';
 import 'package:zone_app/src/features/devices/presentation/bloc/device_list_state.dart';
+import 'package:zone_app/src/features/devices/presentation/bloc/device_state.dart';
 
 class DeviceListCubit extends Cubit<DeviceListState> {
   final SearchDeviceUseCase searchDevicesUseCase;

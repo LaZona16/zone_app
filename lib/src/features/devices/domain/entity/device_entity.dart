@@ -7,4 +7,8 @@ class DeviceEntity {
     required this.strength,
     required this.name,
   });
+
+  factory DeviceEntity.empty() {
+    return DeviceEntity(id: '', strength: 0, name: '');
+  }
 }
