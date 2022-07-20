@@ -1,9 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zone_app/src/core/usecases.dart';
-import 'package:zone_app/src/features/devices/domain/entity/device_entity.dart';
 import 'package:zone_app/src/features/devices/domain/usecase/search_devices_usecase.dart';
 import 'package:zone_app/src/features/devices/presentation/bloc/device_list_state.dart';
-import 'package:zone_app/src/features/devices/presentation/bloc/device_state.dart';
 
 class DeviceListCubit extends Cubit<DeviceListState> {
   final SearchDeviceUseCase searchDevicesUseCase;
@@ -16,7 +14,7 @@ class DeviceListCubit extends Cubit<DeviceListState> {
     final result = searchDevicesUseCase.call(NoParams());
     result.fold(
       (l) => emit(
-        DeviceListState.error('Not able to use bluetooth'),
+        const DeviceListState.error('Not able to use bluetooth'),
       ),
       (stream) => stream.forEach((element) {
         emit(DeviceListState.done(element));

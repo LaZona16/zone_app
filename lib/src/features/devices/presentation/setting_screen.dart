@@ -4,13 +4,19 @@ import 'package:zone_app/src/core/injection_container.dart';
 import 'package:zone_app/src/features/devices/presentation/bloc/device_list_cubit.dart';
 import 'package:zone_app/src/features/devices/presentation/bloc/device_list_state.dart';
 import 'package:zone_app/src/features/devices/presentation/bloc/device_selected_cubit.dart';
+import 'package:zone_app/src/features/devices/presentation/bloc/read_values_cubit.dart';
+import 'package:zone_app/src/features/devices/presentation/bloc/read_values_state.dart';
 import 'package:zone_app/src/features/devices/presentation/bloc/write_value_cubit.dart';
-import 'package:zone_app/src/features/devices/presentation/bloc/write_value_state.dart';
 
-class SettingsScreen extends StatelessWidget {
-  final _writeController = TextEditingController();
-
+class SettingsScreen extends StatefulWidget {
   SettingsScreen({Key? key}) : super(key: key);
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  final _writeController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -24,6 +30,18 @@ class SettingsScreen extends StatelessWidget {
             },
             child: const Text(
               'Search',
+            ),
+          ),
+          const SizedBox(
+            height: 10,
+          ),
+          ElevatedButton(
+            onPressed: () {
+              sl<ReadValuesCubit>()
+                  .readValues(sl<DeviceSelectedCubit>().state.device, 'Wall');
+            },
+            child: const Text(
+              'Listen',
             ),
           ),
           BlocBuilder<DeviceListCubit, DeviceListState>(
@@ -57,7 +75,7 @@ class SettingsScreen extends StatelessWidget {
                           );
                         },
                         separatorBuilder: (context, index) {
-                          return Divider();
+                          return const Divider();
                         },
                         itemCount: items.length),
                   );
@@ -67,30 +85,60 @@ class SettingsScreen extends StatelessWidget {
               }
             },
           ),
-          Expanded(
-            child: AlertDialog(
-              title: Text("Write"),
-              content: Row(
-                children: <Widget>[
-                  Expanded(
-                    child: TextField(
-                      controller: _writeController,
-                    ),
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: AlertDialog(
+                  title: const Text("Write"),
+                  content: Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: TextField(
+                          controller: _writeController,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                  actions: <Widget>[
+                    ElevatedButton(
+                      onPressed: () {
+                        sl<WriteValueCubit>().writeValue(
+                            sl<DeviceSelectedCubit>().state.device,
+                            'Wall',
+                            _writeController.value.text);
+                        _writeController.clear();
+                      },
+                      child: const Text('Send'),
+                    )
+                  ],
+                ),
               ),
-              actions: <Widget>[
-                ElevatedButton(
-                  onPressed: () {
-                    sl<WriteValueCubit>().writeValue(
-                        sl<DeviceSelectedCubit>().state.device,
-                        'Wall',
-                        _writeController.value.text);
-                  },
-                  child: Text('Send'),
-                )
-              ],
-            ),
+              BlocBuilder<ReadValuesCubit, ReadValuesState>(
+                bloc: sl<ReadValuesCubit>(),
+                builder: (context, state) {
+                  switch (state.status) {
+                    case ReadValuesStatus.initial:
+                      return const Text('Press to listen changes');
+                    case ReadValuesStatus.listening:
+                      return const Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    case ReadValuesStatus.done:
+                      // Listview
+                      final hit = state.hit;
+                      return Expanded(
+                        child: hit.wasShooted
+                            ? Text(
+                                'position: ${hit.position.name}, force: ${hit.force}')
+                            : const Text('Please start play'),
+                      );
+                    case ReadValuesStatus.error:
+                      return Text(state.message ?? '',
+                          style: const TextStyle(color: Colors.red));
+                  }
+                },
+              ),
+            ],
           ),
         ],
       ),

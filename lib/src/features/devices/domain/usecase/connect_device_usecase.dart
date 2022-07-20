@@ -4,7 +4,7 @@ import 'package:zone_app/src/core/usecases.dart';
 import 'package:zone_app/src/features/devices/domain/entity/device_entity.dart';
 import 'package:zone_app/src/features/devices/domain/repository/device_repository.dart';
 
-class ConnectDeviceUseCase extends UseCase<void, DeviceParams> {
+class ConnectDeviceUseCase extends UseCase<bool, DeviceParams> {
   final DeviceRepository deviceRepository;
 
   ConnectDeviceUseCase({required this.deviceRepository});
