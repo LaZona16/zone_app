@@ -16,8 +16,8 @@ final sl = GetIt.instance;
 
 Future<void> init() async {
   //Services
-  sl.registerFactory<DeviceLocalDataSource>(
-      () => BluetoothDeviceLocalDataSourceImpl());
+  sl.registerSingleton<DeviceLocalDataSource>(
+      BluetoothDeviceLocalDataSourceImpl());
   sl.registerFactory<DeviceRepository>(
       () => DeviceRepositoryImpl(localDataSource: sl()));
   //Use cases

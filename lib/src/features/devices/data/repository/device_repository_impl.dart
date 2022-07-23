@@ -1,3 +1,5 @@
+import 'package:dartz/dartz_unsafe.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:zone_app/src/core/failures.dart';
 import 'package:dartz/dartz.dart';
 import 'package:zone_app/src/features/devices/data/local/bluetooth_device_local_source.dart';
@@ -43,9 +45,9 @@ class DeviceRepositoryImpl implements DeviceRepository {
 
   @override
   Future<Either<Failure, void>> writeValue(
-      DeviceEntity device, String field, String value) async {
+      String deviceId, String field, String value) async {
     try {
-      await localDataSource.writeValue(device as DeviceModel, field, value);
+      await localDataSource.writeValue(deviceId, field, value);
       return const Right(null);
     } on Exception {
       return Left(BluetoothFailure());
@@ -53,11 +55,9 @@ class DeviceRepositoryImpl implements DeviceRepository {
   }
 
   @override
-  Future<Either<Failure, Stream<HitModel>>> readValues(
-      DeviceEntity device, String field) async {
+  Future<Either<Failure, Stream<HitModel>>> readValues(String field) async {
     try {
-      final result =
-          await localDataSource.readValues(device as DeviceModel, field);
+      final result = await localDataSource.readValues(field);
       return Right(result);
     } on Exception {
       return Left(BluetoothFailure());

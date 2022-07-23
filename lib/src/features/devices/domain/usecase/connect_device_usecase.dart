@@ -17,5 +17,7 @@ class ConnectDeviceUseCase extends UseCase<bool, DeviceParams> {
 
 class DeviceParams {
   final DeviceEntity device;
-  DeviceParams({required this.device});
+  DeviceParams({
+    required this.device,
+  });
 }

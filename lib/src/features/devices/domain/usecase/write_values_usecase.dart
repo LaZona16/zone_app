@@ -12,17 +12,17 @@ class WriteValueUseCase extends FutureUseCase<void, WriteValueParams> {
   @override
   Future<Either<Failure, void>> call(WriteValueParams params) {
     return deviceRepository.writeValue(
-        params.device, params.field, params.value);
+        params.deviceId, params.field, params.value);
   }
 }
 
 class WriteValueParams {
-  final DeviceEntity device;
+  final String deviceId;
   final String field;
   final String value;
 
   WriteValueParams({
-    required this.device,
+    required this.deviceId,
     required this.field,
     required this.value,
   });

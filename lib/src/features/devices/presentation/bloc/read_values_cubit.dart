@@ -13,18 +13,19 @@ class ReadValuesCubit extends Cubit<ReadValuesState> {
     //Emit starting
     emit(ReadValuesState.listening());
     //Call the useCase
-    final result = await readValuesUseCase
-        .call(ReadValueParams(device: device, field: field));
+    final result = await readValuesUseCase.call(ReadValueParams(field: field));
     //emit the event of error or listening
     result.fold(
-      (l) => emit(
-        ReadValuesState.error('There was an error listening data'),
-      ),
-      (stream) => stream.forEach(
+        (l) => emit(
+              ReadValuesState.error('There was an error listening data'),
+            ), (stream) {
+      print(stream);
+      stream.listen(
         (element) {
+          print(element);
           emit(ReadValuesState.done(element));
         },
-      ),
-    );
+      );
+    });
   }
 }

@@ -12,8 +12,7 @@ abstract class DeviceRepository {
   Either<Failure, bool> disconnect(DeviceEntity device);
 
   Future<Either<Failure, void>> writeValue(
-      DeviceEntity device, String field, String value);
+      String deviceId, String field, String value);
 
-  Future<Either<Failure, Stream<HitModel>>> readValues(
-      DeviceEntity device, String field);
+  Future<Either<Failure, Stream<HitModel>>> readValues(String field);
 }

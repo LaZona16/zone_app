@@ -103,7 +103,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ElevatedButton(
                       onPressed: () {
                         sl<WriteValueCubit>().writeValue(
-                            sl<DeviceSelectedCubit>().state.device,
+                            sl<DeviceSelectedCubit>().state.device.id,
                             'Wall',
                             _writeController.value.text);
                         _writeController.clear();

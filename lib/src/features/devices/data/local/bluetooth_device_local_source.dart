@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:zone_app/src/core/exceptions.dart';
 import 'package:zone_app/src/features/devices/data/local/helpers/bluetooth_device_extension.dart';
 import 'package:zone_app/src/features/devices/data/models/device_model.dart';
@@ -12,11 +13,13 @@ abstract class DeviceLocalDataSource {
   Stream<List<DeviceModel>> searchDevices();
   bool connect(DeviceModel device);
   bool disconnect(DeviceModel device);
-  Future<void> writeValue(DeviceModel device, String field, String value);
-  Future<Stream<HitModel>> readValues(DeviceModel device, String field);
+  Future<void> writeValue(String deviceId, String field, String value);
+  Future<Stream<HitModel>> readValues(String field);
 }
 
 class BluetoothDeviceLocalDataSourceImpl extends DeviceLocalDataSource {
+  final Map<String, DeviceModel> connectedDevices = <String, DeviceModel>{};
+
   final List<Guid> _ZONE_Services = [
     Guid("0000ffe0-0000-1000-8000-00805f9b34fb"), //ZWall Service
   ];
@@ -42,6 +45,9 @@ class BluetoothDeviceLocalDataSourceImpl extends DeviceLocalDataSource {
 
   @override
   bool connect(DeviceModel device) {
+    if (!connectedDevices.containsKey(device.id)) {
+      connectedDevices[device.id] = device;
+    }
     final bluetoothDevice = device.toBluetoothDevice();
     bluetoothDevice
         .connect()
@@ -59,9 +65,9 @@ class BluetoothDeviceLocalDataSourceImpl extends DeviceLocalDataSource {
   }
 
   @override
-  Future<void> writeValue(
-      DeviceModel device, String field, String value) async {
-    final BluetoothDevice bluedevice = device.toBluetoothDevice();
+  Future<void> writeValue(String deviceId, String field, String value) async {
+    final device = connectedDevices[deviceId];
+    final BluetoothDevice bluedevice = device!.toBluetoothDevice();
     final services = await bluedevice.discoverServices();
     if (serviceMaps.containsKey(field)) {
       for (BluetoothService service in services) {
@@ -79,7 +85,20 @@ class BluetoothDeviceLocalDataSourceImpl extends DeviceLocalDataSource {
   }
 
   @override
-  Future<Stream<HitModel>> readValues(DeviceModel device, String field) async {
+  Future<Stream<HitModel>> readValues(String field) async {
+    MergeStream<HitModel> mergedStream = MergeStream([]);
+    print(connectedDevices);
+    connectedDevices.forEach(
+      (key, device) async {
+        final result = await readDevice(device, field);
+        mergedStream = MergeStream([mergedStream, result]);
+      },
+    );
+    return mergedStream;
+  }
+
+  @override
+  Future<Stream<HitModel>> readDevice(DeviceModel device, String field) async {
     final BluetoothDevice bluedevice = device.toBluetoothDevice();
     final services = await bluedevice.discoverServices();
     if (serviceMaps.containsKey(field)) {
@@ -103,11 +122,19 @@ class BluetoothDeviceLocalDataSourceImpl extends DeviceLocalDataSource {
                       position = Position.right;
                     }
                     return HitModel(
-                        force: force, shooted: true, position: position);
+                      force: force,
+                      shooted: true,
+                      position: position,
+                      id: device.id,
+                    );
                   }
 
                   HitModel hit = HitModel(
-                      force: 0, shooted: false, position: Position.center);
+                    force: 0,
+                    shooted: false,
+                    position: Position.center,
+                    id: '-1',
+                  );
                   return hit;
                 },
               );
@@ -117,39 +144,6 @@ class BluetoothDeviceLocalDataSourceImpl extends DeviceLocalDataSource {
       }
     }
     throw (Exception());
-  }
-}
-
-// Create fake service
-class BlueFake extends DeviceLocalDataSource {
-  @override
-  bool connect(DeviceModel device) {
-    // TODO: implement connect
-    throw UnimplementedError();
-  }
-
-  @override
-  bool disconnect(DeviceModel device) {
-    // TODO: implement disconnect
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Stream<HitModel>> readValues(DeviceModel device, String field) {
-    // TODO: implement readValues
-    throw UnimplementedError();
-  }
-
-  @override
-  Stream<List<DeviceModel>> searchDevices() {
-    // TODO: implement searchDevices
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> writeValue(DeviceModel device, String field, String value) {
-    // TODO: implement writeValue
-    throw UnimplementedError();
   }
 }
 

@@ -9,15 +9,14 @@ class WriteValueCubit extends Cubit<WriteValueState> {
   WriteValueCubit({required this.writeValueUseCase})
       : super(WriteValueState.initial());
 
-  Future<void> writeValue(
-      DeviceEntity device, String field, String value) async {
+  Future<void> writeValue(String deviceId, String field, String value) async {
     final result = await writeValueUseCase
-        .call(WriteValueParams(device: device, field: field, value: value));
+        .call(WriteValueParams(deviceId: deviceId, field: field, value: value));
 
     result.fold(
-      (l) => emit(WriteValueState.error('Error sending data')),
+      (l) => emit(WriteValueState.error('Error sending data', deviceId)),
       (r) => emit(
-        WriteValueState.done(device, value),
+        WriteValueState.done(deviceId, value),
       ),
     );
   }
