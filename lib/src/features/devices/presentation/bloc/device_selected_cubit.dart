@@ -7,6 +7,8 @@ import 'package:zone_app/src/features/devices/presentation/bloc/device_state.dar
 class DeviceSelectedCubit extends Cubit<DeviceState> {
   final ConnectDeviceUseCase connectDeviceUseCase;
   final DisconnectDeviceUseCase disconnectDeviceUseCase;
+  List<DeviceEntity> connectedDevices = [];
+
   DeviceSelectedCubit(
       {required this.connectDeviceUseCase,
       required this.disconnectDeviceUseCase})
@@ -16,13 +18,14 @@ class DeviceSelectedCubit extends Cubit<DeviceState> {
     final result =
         await connectDeviceUseCase.call(DeviceParams(device: device));
 
-    print(result);
-
     result.fold(
       (l) => emit(DeviceState.error('Error while connecting')),
-      (r) => emit(
-        DeviceState.done(device, true),
-      ),
+      (r) {
+        connectedDevices.add(device);
+        emit(
+          DeviceState.done(connectedDevices.length),
+        );
+      },
     );
   }
 
@@ -30,10 +33,15 @@ class DeviceSelectedCubit extends Cubit<DeviceState> {
     final result = disconnectDeviceUseCase.call(DeviceParams(device: device));
 
     result.fold(
-      (l) => emit(DeviceState.error('Error while connecting')),
-      (r) => emit(
-        DeviceState.done(device, false),
+      (l) => emit(
+        DeviceState.error('Error while connecting'),
       ),
+      (r) {
+        connectedDevices.remove(device);
+        emit(
+          DeviceState.done(connectedDevices.length),
+        );
+      },
     );
   }
 }

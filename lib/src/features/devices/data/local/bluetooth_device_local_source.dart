@@ -20,10 +20,6 @@ abstract class DeviceLocalDataSource {
 class BluetoothDeviceLocalDataSourceImpl extends DeviceLocalDataSource {
   final Map<String, DeviceModel> connectedDevices = <String, DeviceModel>{};
 
-  final List<Guid> _ZONE_Services = [
-    Guid("0000ffe0-0000-1000-8000-00805f9b34fb"), //ZWall Service
-  ];
-
   @override
   Stream<List<DeviceModel>> searchDevices() {
     FlutterBluePlus flutterBluePlus = FlutterBluePlus.instance;
@@ -37,7 +33,7 @@ class BluetoothDeviceLocalDataSourceImpl extends DeviceLocalDataSource {
         scanMode: ScanMode.lowLatency,
         allowDuplicates: false,
         timeout: const Duration(seconds: 5),
-        withServices: _ZONE_Services);
+        withServices: zoneServices);
 
     return flutterBluePlus.scanResults.map((event) => event
         .map((e) => DeviceModel(

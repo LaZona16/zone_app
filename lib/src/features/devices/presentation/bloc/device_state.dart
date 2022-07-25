@@ -6,26 +6,23 @@ enum DeviceStatus { initial, done, error }
 class DeviceState extends Equatable {
   final DeviceStatus status;
   final String? message;
-  final DeviceEntity device;
-  final bool connected;
+  final int quantity;
   //The page is init
   DeviceState.initial()
-      : device = DeviceEntity.empty(),
+      : quantity = 0,
         message = null,
-        connected = false,
         status = DeviceStatus.initial;
 
-  // Loading
-  const DeviceState.done(this.device, this.connected)
+  // Done
+  const DeviceState.done(this.quantity)
       : message = null,
         status = DeviceStatus.done;
 
   // Error
   DeviceState.error(this.message)
-      : device = DeviceEntity.empty(),
-        connected = false,
+      : quantity = 0,
         status = DeviceStatus.error;
 
   @override
-  List<Object?> get props => [message, device, status, connected];
+  List<Object?> get props => [message, quantity, status];
 }

@@ -4,6 +4,7 @@ import 'package:zone_app/src/core/injection_container.dart';
 import 'package:zone_app/src/features/devices/presentation/bloc/device_list_cubit.dart';
 import 'package:zone_app/src/features/devices/presentation/bloc/device_list_state.dart';
 import 'package:zone_app/src/features/devices/presentation/bloc/device_selected_cubit.dart';
+import 'package:zone_app/src/features/devices/presentation/bloc/device_state.dart';
 import 'package:zone_app/src/features/devices/presentation/bloc/read_values_cubit.dart';
 import 'package:zone_app/src/features/devices/presentation/bloc/read_values_state.dart';
 import 'package:zone_app/src/features/devices/presentation/bloc/write_value_cubit.dart';
@@ -37,8 +38,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           ElevatedButton(
             onPressed: () {
-              sl<ReadValuesCubit>()
-                  .readValues(sl<DeviceSelectedCubit>().state.device, 'Wall');
+              sl<ReadValuesCubit>().readValues('Wall');
             },
             child: const Text(
               'Listen',
@@ -62,17 +62,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         itemBuilder: (context, index) {
                           final item = items[index];
                           return ListTile(
-                            onTap: () {
-                              sl<DeviceSelectedCubit>().state.connected
-                                  ? sl<DeviceSelectedCubit>().disconnect(item)
-                                  : sl<DeviceSelectedCubit>().connect(item);
-                            },
-                            title: Text(item.name),
-                            subtitle: Text(item.id),
-                            trailing: Text(
-                              item.strength.toString(),
-                            ),
-                          );
+                              title: Text(item.name),
+                              subtitle: Text(item.id),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: <Widget>[
+                                  IconButton(
+                                    onPressed: () {
+                                      sl<DeviceSelectedCubit>().connect(item);
+                                    },
+                                    icon: Icon(Icons.add),
+                                  ),
+                                  IconButton(
+                                    onPressed: () {
+                                      sl<DeviceSelectedCubit>()
+                                          .disconnect(item);
+                                    },
+                                    icon: Icon(Icons.remove),
+                                  )
+                                ],
+                              ));
                         },
                         separatorBuilder: (context, index) {
                           return const Divider();
@@ -82,6 +91,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 case DeviceListStatus.error:
                   return Text(state.message ?? '',
                       style: const TextStyle(color: Colors.red));
+              }
+            },
+          ),
+          BlocBuilder<DeviceSelectedCubit, DeviceState>(
+            bloc: sl<DeviceSelectedCubit>(),
+            builder: (context, state) {
+              switch (state.status) {
+                case DeviceStatus.initial:
+                  return Text('Please add Zone Devices');
+                case DeviceStatus.done:
+                  return Text('You have ${state.quantity} devices connected');
+                case DeviceStatus.error:
+                  return Text(state.message.toString());
               }
             },
           ),
@@ -102,10 +124,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   actions: <Widget>[
                     ElevatedButton(
                       onPressed: () {
-                        sl<WriteValueCubit>().writeValue(
-                            sl<DeviceSelectedCubit>().state.device.id,
-                            'Wall',
-                            _writeController.value.text);
+                        // sl<WriteValueCubit>().writeValue(
+                        //     sl<DeviceSelectedCubit>().state.device.id,
+                        //     'Wall',
+                        //     _writeController.value.text);
                         _writeController.clear();
                       },
                       child: const Text('Send'),
