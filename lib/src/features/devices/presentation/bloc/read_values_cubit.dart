@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zone_app/src/features/devices/domain/entity/device_entity.dart';
+import 'package:zone_app/src/features/devices/domain/entity/hit_entity.dart';
 import 'package:zone_app/src/features/devices/domain/usecase/read_values_usecase.dart';
 import 'package:zone_app/src/features/devices/presentation/bloc/read_values_state.dart';
 
@@ -19,10 +20,8 @@ class ReadValuesCubit extends Cubit<ReadValuesState> {
         (l) => emit(
               ReadValuesState.error('There was an error listening data'),
             ), (stream) {
-      print(stream);
       stream.listen(
         (element) {
-          print(element);
           emit(ReadValuesState.done(element));
         },
       );

@@ -12,8 +12,11 @@ class DeviceSelectedCubit extends Cubit<DeviceState> {
       required this.disconnectDeviceUseCase})
       : super(DeviceState.initial());
 
-  void connect(DeviceEntity device) {
-    final result = connectDeviceUseCase.call(DeviceParams(device: device));
+  Future<void> connect(DeviceEntity device) async {
+    final result =
+        await connectDeviceUseCase.call(DeviceParams(device: device));
+
+    print(result);
 
     result.fold(
       (l) => emit(DeviceState.error('Error while connecting')),

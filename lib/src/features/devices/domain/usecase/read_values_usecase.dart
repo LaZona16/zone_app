@@ -18,7 +18,6 @@ class ReadValuesUseCase
 
 class ReadValueParams {
   final String field;
-
   ReadValueParams({
     required this.field,
   });

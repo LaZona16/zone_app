@@ -4,13 +4,13 @@ import 'package:zone_app/src/core/usecases.dart';
 import 'package:zone_app/src/features/devices/domain/entity/device_entity.dart';
 import 'package:zone_app/src/features/devices/domain/repository/device_repository.dart';
 
-class ConnectDeviceUseCase extends UseCase<bool, DeviceParams> {
+class ConnectDeviceUseCase extends FutureUseCase<bool, DeviceParams> {
   final DeviceRepository deviceRepository;
 
   ConnectDeviceUseCase({required this.deviceRepository});
 
   @override
-  Either<Failure, bool> call(DeviceParams params) {
+  Future<Either<Failure, bool>> call(DeviceParams params) {
     return deviceRepository.connect(params.device);
   }
 }

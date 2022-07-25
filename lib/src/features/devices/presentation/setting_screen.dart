@@ -129,7 +129,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       return Expanded(
                         child: hit.wasShooted
                             ? Text(
-                                'position: ${hit.position.name}, force: ${hit.force}')
+                                'position: ${hit.position.name}, force: ${hit.force} ${hit.deviceId}')
                             : const Text('Please start play'),
                       );
                     case ReadValuesStatus.error:

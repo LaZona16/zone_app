@@ -7,7 +7,7 @@ import 'package:zone_app/src/features/devices/domain/entity/device_entity.dart';
 abstract class DeviceRepository {
   Either<Failure, Stream<List<DeviceModel>>> searchDevices();
 
-  Either<Failure, bool> connect(DeviceEntity device);
+  Future<Either<Failure, bool>> connect(DeviceEntity device);
 
   Either<Failure, bool> disconnect(DeviceEntity device);
 

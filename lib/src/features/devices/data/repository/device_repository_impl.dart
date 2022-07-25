@@ -24,9 +24,9 @@ class DeviceRepositoryImpl implements DeviceRepository {
   }
 
   @override
-  Either<Failure, bool> connect(DeviceEntity device) {
+  Future<Either<Failure, bool>> connect(DeviceEntity device) async {
     try {
-      final result = localDataSource.connect(device as DeviceModel);
+      final result = await localDataSource.connect(device as DeviceModel);
       return Right(result);
     } on Exception {
       return Left(BluetoothFailure());
