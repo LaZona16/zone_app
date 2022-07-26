@@ -14,5 +14,6 @@ abstract class DeviceRepository {
   Future<Either<Failure, void>> writeValue(
       String deviceId, String field, String value);
 
-  Future<Either<Failure, Stream<HitModel>>> readValues(String field);
+  Future<Either<Failure, Stream<HitModel>>> readValues(
+      List<DeviceEntity> connectedDevices, String field);
 }

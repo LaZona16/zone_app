@@ -1,5 +1,4 @@
-import 'package:dartz/dartz_unsafe.dart';
-import 'package:rxdart/rxdart.dart';
+import 'package:async/async.dart';
 import 'package:zone_app/src/core/failures.dart';
 import 'package:dartz/dartz.dart';
 import 'package:zone_app/src/features/devices/data/local/bluetooth_device_local_source.dart';
@@ -55,9 +54,16 @@ class DeviceRepositoryImpl implements DeviceRepository {
   }
 
   @override
-  Future<Either<Failure, Stream<HitModel>>> readValues(String field) async {
+  Future<Either<Failure, Stream<HitModel>>> readValues(
+      List<DeviceEntity> connectedDevices, String field) async {
     try {
-      final result = await localDataSource.readValues(field);
+      final streams = List<Stream<HitModel>>.empty(growable: true);
+      for (var device in connectedDevices) {
+        final stream =
+            await localDataSource.readDevice(device as DeviceModel, field);
+        streams.add(stream);
+      }
+      final result = StreamGroup.merge(streams).asBroadcastStream();
       return Right(result);
     } on Exception {
       return Left(BluetoothFailure());

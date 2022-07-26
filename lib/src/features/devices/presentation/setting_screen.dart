@@ -7,7 +7,6 @@ import 'package:zone_app/src/features/devices/presentation/bloc/device_selected_
 import 'package:zone_app/src/features/devices/presentation/bloc/device_state.dart';
 import 'package:zone_app/src/features/devices/presentation/bloc/read_values_cubit.dart';
 import 'package:zone_app/src/features/devices/presentation/bloc/read_values_state.dart';
-import 'package:zone_app/src/features/devices/presentation/bloc/write_value_cubit.dart';
 
 class SettingsScreen extends StatefulWidget {
   SettingsScreen({Key? key}) : super(key: key);
@@ -38,7 +37,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           ElevatedButton(
             onPressed: () {
-              sl<ReadValuesCubit>().readValues('Wall');
+              sl<ReadValuesCubit>().readValues(
+                sl<DeviceSelectedCubit>().connectedDevices,
+                'Wall',
+              );
             },
             child: const Text(
               'Listen',
@@ -121,18 +123,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                     ],
                   ),
-                  actions: <Widget>[
-                    ElevatedButton(
-                      onPressed: () {
-                        // sl<WriteValueCubit>().writeValue(
-                        //     sl<DeviceSelectedCubit>().state.device.id,
-                        //     'Wall',
-                        //     _writeController.value.text);
-                        _writeController.clear();
-                      },
-                      child: const Text('Send'),
-                    )
-                  ],
                 ),
               ),
               BlocBuilder<ReadValuesCubit, ReadValuesState>(

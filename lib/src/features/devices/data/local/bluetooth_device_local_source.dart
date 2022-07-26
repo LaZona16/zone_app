@@ -1,8 +1,6 @@
 import 'dart:convert';
 
-import 'package:async/async.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-import 'package:rxdart/rxdart.dart';
 import 'package:zone_app/src/core/exceptions.dart';
 import 'package:zone_app/src/features/devices/data/local/helpers/bluetooth_device_extension.dart';
 import 'package:zone_app/src/features/devices/data/models/device_model.dart';
@@ -14,7 +12,7 @@ abstract class DeviceLocalDataSource {
   Future<bool> connect(DeviceModel device);
   bool disconnect(DeviceModel device);
   Future<void> writeValue(String deviceId, String field, String value);
-  Future<Stream<HitModel>> readValues(String field);
+  Future<Stream<HitModel>> readDevice(DeviceModel device, String field);
 }
 
 class BluetoothDeviceLocalDataSourceImpl extends DeviceLocalDataSource {
@@ -24,7 +22,7 @@ class BluetoothDeviceLocalDataSourceImpl extends DeviceLocalDataSource {
   Stream<List<DeviceModel>> searchDevices() {
     FlutterBluePlus flutterBluePlus = FlutterBluePlus.instance;
     List<Guid> zoneServices = [];
-    serviceMaps.forEach(
+    _serviceMaps.forEach(
       (key, value) {
         zoneServices.add(Guid(value['serviceUUID']));
       },
@@ -69,7 +67,7 @@ class BluetoothDeviceLocalDataSourceImpl extends DeviceLocalDataSource {
   Future<void> writeValue(String deviceId, String field, String value) async {
     final device = connectedDevices[deviceId];
     final BluetoothDevice bluedevice = device!.toBluetoothDevice();
-    if (serviceMaps.containsKey(field)) {
+    if (_serviceMaps.containsKey(field)) {
       BluetoothCharacteristic characteristic =
           await _getBluetoothCharacteristic(bluedevice, field);
       await characteristic.write(utf8.encode(value));
@@ -77,27 +75,14 @@ class BluetoothDeviceLocalDataSourceImpl extends DeviceLocalDataSource {
   }
 
   @override
-  Future<Stream<HitModel>> readValues(String field) async {
-    MergeStream<HitModel> mergeStream = MergeStream([]);
-    final streams = List<Stream<HitModel>>.empty(growable: true);
-
-    await Future.forEach(connectedDevices.keys, (key) async {
-      final device = connectedDevices[key]!;
-      final result = await _readDevice(device, field);
-      streams.add(result);
-    });
-    return StreamGroup.merge(streams).asBroadcastStream();
-  }
-
-  Future<Stream<HitModel>> _readDevice(DeviceModel device, String field) async {
+  Future<Stream<HitModel>> readDevice(DeviceModel device, String field) async {
     final BluetoothDevice bluedevice = device.toBluetoothDevice();
-    if (serviceMaps.containsKey(field)) {
+    if (_serviceMaps.containsKey(field)) {
       BluetoothCharacteristic characteristic =
           await _getBluetoothCharacteristic(bluedevice, field);
       await characteristic.setNotifyValue(true);
       return characteristic.value.map(
         (event) {
-          print(event);
           if (event.isNotEmpty || event.length > 2) {
             int force = event.elementAt(2);
             int pos = event.elementAt(1);
@@ -134,12 +119,44 @@ Future<BluetoothCharacteristic> _getBluetoothCharacteristic(
     BluetoothDevice device, String field) async {
   final services = await device.discoverServices();
   final service = services.firstWhere((service) =>
-      service.uuid.toString() == serviceMaps[field]['serviceUUID']);
+      service.uuid.toString() == _serviceMaps[field]['serviceUUID']);
 
   return service.characteristics.first;
 }
 
-final Map serviceMaps = {
+class BluetoothDeviceFakeImpl extends DeviceLocalDataSource {
+  @override
+  Stream<List<DeviceModel>> searchDevices() async* {
+    final fakeDevices = DeviceModel.generateFakeDevices();
+    await Future.delayed(const Duration(seconds: 1));
+    yield fakeDevices;
+  }
+
+  @override
+  Future<bool> connect(DeviceModel device) async {
+    await Future.delayed(const Duration(microseconds: 100));
+    return true;
+  }
+
+  @override
+  bool disconnect(DeviceModel device) {
+    return true;
+  }
+
+  @override
+  Future<Stream<HitModel>> readDevice(DeviceModel device, String field) {
+    // TODO: implement readDevice
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> writeValue(String deviceId, String field, String value) {
+    // TODO: implement writeValue
+    throw UnimplementedError();
+  }
+}
+
+final Map _serviceMaps = {
   'Wall': {
     'serviceUUID': '0000ffe0-0000-1000-8000-00805f9b34fb',
     'characteristicUUID': '0000ffe1-0000-1000-8000-00805f9b34fb',
