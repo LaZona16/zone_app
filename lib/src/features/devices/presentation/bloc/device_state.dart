@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-import 'package:zone_app/src/features/devices/domain/entity/device_entity.dart';
 
 enum DeviceStatus { initial, done, error }
 
@@ -8,7 +7,7 @@ class DeviceState extends Equatable {
   final String? message;
   final int quantity;
   //The page is init
-  DeviceState.initial()
+  const DeviceState.initial()
       : quantity = 0,
         message = null,
         status = DeviceStatus.initial;
@@ -19,7 +18,7 @@ class DeviceState extends Equatable {
         status = DeviceStatus.done;
 
   // Error
-  DeviceState.error(this.message)
+  const DeviceState.error(this.message)
       : quantity = 0,
         status = DeviceStatus.error;
 

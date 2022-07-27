@@ -13,7 +13,7 @@ class DeviceModel extends DeviceEntity {
         );
 
   static List<DeviceModel> generateFakeDevices() {
-    Random random = new Random();
+    Random random = Random();
     final fakeDevices = <DeviceModel>[
       DeviceModel(
         id: '3D:D0:47:54:74:2A',

@@ -1,3 +1,4 @@
+// ignore: depend_on_referenced_packages
 import 'package:async/async.dart';
 import 'package:zone_app/src/core/failures.dart';
 import 'package:dartz/dartz.dart';

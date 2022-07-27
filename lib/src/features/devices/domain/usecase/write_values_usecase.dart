@@ -1,7 +1,6 @@
 import 'package:zone_app/src/core/failures.dart';
 import 'package:dartz/dartz.dart';
 import 'package:zone_app/src/core/usecases.dart';
-import 'package:zone_app/src/features/devices/domain/entity/device_entity.dart';
 import 'package:zone_app/src/features/devices/domain/repository/device_repository.dart';
 
 class WriteValueUseCase extends FutureUseCase<void, WriteValueParams> {
