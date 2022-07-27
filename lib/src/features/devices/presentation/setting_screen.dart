@@ -5,19 +5,15 @@ import 'package:zone_app/src/features/devices/presentation/bloc/device_list_cubi
 import 'package:zone_app/src/features/devices/presentation/bloc/device_list_state.dart';
 import 'package:zone_app/src/features/devices/presentation/bloc/device_selected_cubit.dart';
 import 'package:zone_app/src/features/devices/presentation/bloc/device_state.dart';
-import 'package:zone_app/src/features/devices/presentation/bloc/read_values_cubit.dart';
-import 'package:zone_app/src/features/devices/presentation/bloc/read_values_state.dart';
 
 class SettingsScreen extends StatefulWidget {
-  SettingsScreen({Key? key}) : super(key: key);
+  const SettingsScreen({Key? key}) : super(key: key);
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  final _writeController = TextEditingController();
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -226,7 +222,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ],
             ),
           ),
-          
         ],
       ),
     );

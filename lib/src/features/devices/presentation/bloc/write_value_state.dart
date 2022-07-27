@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-import 'package:zone_app/src/features/devices/domain/entity/device_entity.dart';
 
 enum WriteValueStatus { initial, done, error }
 
@@ -9,7 +8,7 @@ class WriteValueState extends Equatable {
   final String? deviceId;
   final String value;
   //The page is init
-  WriteValueState.initial()
+  const WriteValueState.initial()
       : deviceId = null,
         message = null,
         value = '',
@@ -23,7 +22,7 @@ class WriteValueState extends Equatable {
         status = WriteValueStatus.done;
 
   // Error
-  WriteValueState.error(this.message, this.deviceId)
+  const WriteValueState.error(this.message, this.deviceId)
       : value = '',
         status = WriteValueStatus.error;
 

@@ -9,11 +9,11 @@ void main() async {
 }
 
 class ZoneTheme {
-  static const mainColor = Color(0x00FF00);
-  static const secondaryColor = Color(0x00B500);
-  static const fontColor = Color(0x4E4E4E);
-  static const backgroundColor = Color(0x0A0A09);
-  static const buttoncolor = Color(0x181818);
+  static const mainColor = Color(0x0000ff00);
+  static const secondaryColor = Color(0x0000b500);
+  static const fontColor = Color(0x004e4e4e);
+  static const backgroundColor = Color(0x000a0a09);
+  static const buttonColor = Color(0x00181818);
 }
 
 class MyApp extends StatelessWidget {
@@ -41,7 +41,7 @@ class MyApp extends StatelessWidget {
             ),
         // textTheme: ThemeData(),
       ),
-      home: SettingsScreen(),
+      home: const SettingsScreen(),
     );
   }
 }
