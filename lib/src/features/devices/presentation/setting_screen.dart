@@ -21,37 +21,97 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+        title: Row(
+          // mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            IconButton(
+              onPressed: () {},
+              icon: const Icon(Icons.arrow_back_rounded),
+            ),
+            const Icon(
+              Icons.settings,
+              color: Color.fromRGBO(0, 181, 0, 1),
+              size: 40,
+            ),
+          ],
+        ),
+      ),
       body: Column(
         children: <Widget>[
-          ElevatedButton(
-            onPressed: () {
-              sl<DeviceListCubit>().startSearching();
-            },
-            child: const Text(
-              'Search',
+          // ElevatedButton(
+          //   onPressed: () {
+          //     sl<DeviceListCubit>().startSearching();
+          //   },
+          //   child: const Text(
+          //     'Search',
+          //     style: TextStyle(),
+          //   ),
+          // ),
+          // const SizedBox(
+          //   height: 10,
+          // ),
+          // ElevatedButton(
+          //   onPressed: () {
+          //     sl<ReadValuesCubit>().readValues(
+          //       sl<DeviceSelectedCubit>().connectedDevices,
+          //       'Wall',
+          //     );
+          //   },
+          //   child: const Text(
+          //     'Listen',
+          //   ),
+          // ),
+          const SizedBox(
+            height: 10,
+          ),
+          const Text(
+            "*Turn On your Smart Phone Bluetooth to sync La Zona Products",
+            style: TextStyle(
+              color: Color.fromRGBO(78, 78, 78, 1),
+              fontSize: 12,
             ),
           ),
           const SizedBox(
             height: 10,
           ),
-          ElevatedButton(
-            onPressed: () {
-              sl<ReadValuesCubit>().readValues(
-                sl<DeviceSelectedCubit>().connectedDevices,
-                'Wall',
-              );
-            },
-            child: const Text(
-              'Listen',
-            ),
+          Row(
+            children: [
+              RawMaterialButton(
+                fillColor: const Color.fromRGBO(0, 181, 0, 1),
+                onPressed: () {
+                  sl<DeviceListCubit>().startSearching();
+                },
+                shape: const CircleBorder(),
+                child: const Icon(
+                  Icons.bluetooth,
+                  color: Color.fromRGBO(24, 24, 24, 1),
+                  size: 30,
+                ),
+              ),
+              const Text(
+                "Search for Products.",
+                style: TextStyle(
+                    color: Color.fromRGBO(0, 181, 0, 1),
+                    fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          const Divider(
+            color: Color.fromRGBO(78, 78, 78, 1),
+            thickness: 5,
           ),
           BlocBuilder<DeviceListCubit, DeviceListState>(
             bloc: sl<DeviceListCubit>(),
             builder: (context, state) {
               switch (state.status) {
                 case DeviceListStatus.initial:
-                  return const Text('Press to init search');
+                  return const Text(
+                    'Press to init search',
+                    style: TextStyle(
+                      color: Color.fromRGBO(255, 255, 255, 1),
+                    ),
+                  );
                 case DeviceListStatus.searching:
                   return const Center(
                     child: CircularProgressIndicator(),
@@ -64,8 +124,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         itemBuilder: (context, index) {
                           final item = items[index];
                           return ListTile(
-                              title: Text(item.name),
-                              subtitle: Text(item.id),
+                              leading: const Icon(
+                                Icons.bluetooth,
+                                color: Color.fromRGBO(255, 255, 255, 1),
+                              ),
+                              title: Text(
+                                item.name,
+                                style: const TextStyle(
+                                  color: Color.fromRGBO(255, 255, 255, 1),
+                                ),
+                              ),
+                              subtitle: Text(
+                                item.id,
+                                style: const TextStyle(
+                                  color: Color.fromRGBO(255, 255, 255, 1),
+                                ),
+                              ),
                               trailing: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: <Widget>[
@@ -73,14 +147,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     onPressed: () {
                                       sl<DeviceSelectedCubit>().connect(item);
                                     },
-                                    icon: Icon(Icons.add),
+                                    icon: const Icon(
+                                      Icons.add,
+                                      color: Color.fromRGBO(255, 255, 255, 1),
+                                    ),
                                   ),
                                   IconButton(
                                     onPressed: () {
                                       sl<DeviceSelectedCubit>()
                                           .disconnect(item);
                                     },
-                                    icon: Icon(Icons.remove),
+                                    icon: const Icon(
+                                      Icons.remove,
+                                      color: Color.fromRGBO(255, 255, 255, 1),
+                                    ),
                                   )
                                 ],
                               ));
@@ -101,57 +181,52 @@ class _SettingsScreenState extends State<SettingsScreen> {
             builder: (context, state) {
               switch (state.status) {
                 case DeviceStatus.initial:
-                  return Text('Please add Zone Devices');
+                  return const Text(
+                    'Please add Zone Devices',
+                    style: TextStyle(
+                      color: Color.fromRGBO(255, 255, 255, 1),
+                    ),
+                  );
                 case DeviceStatus.done:
-                  return Text('You have ${state.quantity} devices connected');
+                  return Text(
+                    'You have ${state.quantity} devices connected',
+                    style: const TextStyle(
+                      color: Color.fromRGBO(255, 255, 255, 1),
+                    ),
+                  );
                 case DeviceStatus.error:
                   return Text(state.message.toString());
               }
             },
           ),
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: AlertDialog(
-                  title: const Text("Write"),
-                  content: Row(
-                    children: <Widget>[
-                      Expanded(
-                        child: TextField(
-                          controller: _writeController,
-                        ),
-                      ),
-                    ],
+          const Divider(
+            color: Color.fromRGBO(78, 78, 78, 1),
+            thickness: 5,
+          ),
+          Container(
+            margin: const EdgeInsets.only(left: 25, top: 10),
+            child: Row(
+              children: [
+                Container(
+                  margin: const EdgeInsets.only(
+                    right: 25,
+                  ),
+                  child: const Icon(
+                    Icons.check_circle_outline_sharp,
+                    color: Color.fromRGBO(0, 181, 0, 1),
+                    size: 40,
                   ),
                 ),
-              ),
-              BlocBuilder<ReadValuesCubit, ReadValuesState>(
-                bloc: sl<ReadValuesCubit>(),
-                builder: (context, state) {
-                  switch (state.status) {
-                    case ReadValuesStatus.initial:
-                      return const Text('Press to listen changes');
-                    case ReadValuesStatus.listening:
-                      return const Center(
-                        child: CircularProgressIndicator(),
-                      );
-                    case ReadValuesStatus.done:
-                      // Listview
-                      final hit = state.hit;
-                      return Expanded(
-                        child: hit.wasShooted
-                            ? Text(
-                                'position: ${hit.position.name}, force: ${hit.force} ${hit.deviceId}')
-                            : const Text('Please start play'),
-                      );
-                    case ReadValuesStatus.error:
-                      return Text(state.message ?? '',
-                          style: const TextStyle(color: Colors.red));
-                  }
-                },
-              ),
-            ],
+                const Text(
+                  "Synchronized Products.",
+                  style: TextStyle(
+                      color: Color.fromRGBO(0, 181, 0, 1),
+                      fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
           ),
+          
         ],
       ),
     );
